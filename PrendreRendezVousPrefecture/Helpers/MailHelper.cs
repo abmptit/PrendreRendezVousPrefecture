@@ -5,11 +5,19 @@ namespace PrendreRendezVousPrefecture.Helpers
 {
     public static class MailHelper
     {
-        public static void SendMail(string subject, string body, IEnumerable<string> attachements = null)
+        public static void SendMail(string subject, 
+            string body, 
+            IEnumerable<string> attachements = null, 
+            IEnumerable<string> destinataires = null)
         {
             var mail = new MailMessage();
             mail.From = new MailAddress("aben-miled@talentsoft.com");
-            mail.To.Add("benmiledaymen@gmail.com");
+
+            foreach (var destinataire in destinataires)
+            {
+                mail.To.Add(destinataire);
+            }
+
             mail.Subject = subject;
             mail.Body = body;
             mail.Priority = MailPriority.Normal;

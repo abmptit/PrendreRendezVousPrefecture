@@ -48,40 +48,53 @@
                                 string screenshotFileName = $"ss_ok_{attempt}.png";
                                 Screenshot ss = ((ITakesScreenshot)webDriver).GetScreenshot();
                                 ss.SaveAsFile(screenshotFileName);
-                                MailHelper.SendMail("Rendez vous disponibles", msg, new string[] { screenshotFileName });
+                                MailHelper.SendMail("Rendez vous disponibles", msg, new string[] { screenshotFileName }, new string[] { "benmiledaymen@gmail.com", "rekik.yousra@gmail.com" });
                                 Thread.Sleep(5000);
                             }
                         }
                         else
                         {
+                            if (attempt % 500 == 1)
+                            {
+                                string screenshotFileName = $"ss_retry_{attempt}.png";
+                                Screenshot ss = ((ITakesScreenshot)webDriver).GetScreenshot();
+                                ss.SaveAsFile(screenshotFileName);
+                                string msg = "http://www.hauts-de-seine.gouv.fr/booking/create/4485/0";
+                                msg += $"\nApres {attempt} essais";
+                                MailHelper.SendMail("Pas de Rendez vous disponibles", msg, new string[] { screenshotFileName }, new string[] { "benmiledaymen@gmail.com" });
+                            }
+
                             var finishButton = webDriver.FindElement(By.XPath("//input[@value='Finish']"));
                             finishButton.Click();
                             Thread.Sleep(500);
                         }
-
-                        if (attempt % 500 == 1)
-                        {
-                            string screenshotFileName = $"ss_retry_{attempt}.png";
-                            Screenshot ss = ((ITakesScreenshot)webDriver).GetScreenshot();
-                            ss.SaveAsFile(screenshotFileName);
-                            string msg = "http://www.hauts-de-seine.gouv.fr/booking/create/4485/0";
-                            msg += $"\nApres {attempt} essais";
-                            MailHelper.SendMail("Pas de Rendez vous disponibles", msg, new string[] { screenshotFileName });
-                        }
                     }
                     catch (Exception ex)
                     {
-                        string screenshotFileName = $"ss_error_{attempt}.png";
-                        Screenshot ss = ((ITakesScreenshot)webDriver).GetScreenshot();
-                        ss.SaveAsFile(screenshotFileName);
-                        Console.WriteLine($"Une erreur s'est produite au {attempt} essai {DateTime.Now.ToString()}");
-                        Console.WriteLine(ex.Message);
-                        string msg = $"Une erreur s'est produite au {attempt} essai";
-                        msg += ex.Message;
-                        MailHelper.SendMail("Erreur scheduler", msg, new string[] { screenshotFileName });
-                        throw;
+                        try
+                        {
+                            string screenshotFileName = $"ss_error_{attempt}.png";
+                            Screenshot ss = ((ITakesScreenshot)webDriver).GetScreenshot();
+                            ss.SaveAsFile(screenshotFileName);
+                            Console.WriteLine($"Une erreur s'est produite au {attempt} essai {DateTime.Now.ToString()}");
+                            Console.WriteLine(ex.Message);
+                            string msg = $"Une erreur s'est produite au {attempt} essai";
+                            msg += ex.Message;
+                            MailHelper.SendMail("Erreur scheduler", msg, new string[] { screenshotFileName }, new string[] { "benmiledaymen@gmail.com" });
+                            return;
+                        }
+                        catch
+                        {
+                            return;
+                        }
+                       
                     }
-                    attempt++;
+                    finally
+                    {
+                        Console.WriteLine($"{attempt} - essai {DateTime.Now.ToString()}");
+                        attempt++;
+                        Thread.Sleep(40000);
+                    }
                 }
             }
         }
